@@ -16,7 +16,7 @@ func main() {
 
 	servicesContainer := services.BuildServices(cfg)
 	toDoHandler := todohandler.New(servicesContainer.ToDoService)
-	err = server.Start(toDoHandler)
+	err = server.Start(toDoHandler, cfg.ServerPort)
 
 	if err != nil {
 		log.Fatal(err)

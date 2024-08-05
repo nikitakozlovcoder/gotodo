@@ -5,9 +5,9 @@ import (
 	"gotodo/http/handlers"
 )
 
-func Start(todoHandler todohandler.IToDoHandler) error {
+func Start(todoHandler todohandler.IToDoHandler, port string) error {
 	r := gin.Default()
 	todoHandler.Init(r.Group("/todo"))
 
-	return r.Run()
+	return r.Run(port)
 }
