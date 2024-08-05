@@ -23,7 +23,7 @@ func NewToDoRepository(connector *connection.DbConnector) *TodoRepository {
 func (repo *TodoRepository) GetAll() (*[]models.Todo, error) {
 	connect, err := repo.connector.DbConnect()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	defer connect.Close()
