@@ -15,7 +15,7 @@ func main() {
 	}
 
 	servicesContainer := services.BuildServices(cfg)
-	toDoHandler := todohandler.New(servicesContainer.ToDoService)
+	toDoHandler := todohandler.New(servicesContainer.ToDoService, servicesContainer.JwtService)
 	err = server.Start(toDoHandler, cfg.ServerPort)
 
 	if err != nil {

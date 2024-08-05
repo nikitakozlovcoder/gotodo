@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gotodo/app/models/requests"
 	"gotodo/app/services"
+	"gotodo/http/middlewares"
 	"log"
 	"net/http"
 )
@@ -14,17 +15,19 @@ type IToDoHandler interface {
 
 type ToDoHandler struct {
 	todoService services.IToDoService
+	jwtService  *services.JwtService
 }
 
-func New(toDoService services.IToDoService) *ToDoHandler {
+func New(toDoService services.IToDoService, jwtService *services.JwtService) *ToDoHandler {
 	return &ToDoHandler{
 		todoService: toDoService,
+		jwtService:  jwtService,
 	}
 }
 
 func (h *ToDoHandler) Init(router *gin.RouterGroup) {
 	router.GET("/list", h.listToDos)
-	router.POST("", h.addToDo)
+	router.POST("", middlewares.AuthMiddleware(h.jwtService), h.addToDo)
 }
 
 func (h *ToDoHandler) listToDos(ctx *gin.Context) {

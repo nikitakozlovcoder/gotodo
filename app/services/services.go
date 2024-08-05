@@ -8,6 +8,7 @@ import (
 
 type Services struct {
 	ToDoService *ToDoService
+	JwtService  *JwtService
 }
 
 func BuildServices(cfg *config.Config) *Services {
@@ -16,5 +17,6 @@ func BuildServices(cfg *config.Config) *Services {
 
 	return &Services{
 		ToDoService: NewToDoService(todoRepository),
+		JwtService:  NewJwtService(cfg.JwtKey),
 	}
 }
