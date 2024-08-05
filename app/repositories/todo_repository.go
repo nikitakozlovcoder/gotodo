@@ -67,7 +67,8 @@ func (repo *TodoRepository) Save(request requests.NewToDoRequest) (int64, error)
 	}
 
 	defer connect.Close()
-	query := connect.QueryRow("INSERT INTO ToDo (title, body) VALUES ($1, $2) RETURNING id", request.Title, request.Body)
+	query := connect.QueryRow("INSERT INTO ToDo (title, body)"+
+		"VALUES ($1, $2) RETURNING id", request.Title, request.Body)
 
 	if query.Err() != nil {
 		log.Println(err)
