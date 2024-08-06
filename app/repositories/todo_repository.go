@@ -21,6 +21,11 @@ func NewToDoRepository(connector *connection.DbConnector) *TodoRepository {
 }
 
 func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
+	type ToDoTagKey struct {
+		TodoId int64
+		TagId  int64
+	}
+
 	connect, err := repo.connector.DbConnect()
 	if err != nil {
 		return nil, err
@@ -42,6 +47,7 @@ func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 	todos := make([]*dtos.TodoDto, 0)
 	todosMap := make(map[int64]*dtos.TodoDto)
 	tagsMap := make(map[int64]*dtos.TagDto)
+	todoTagsMap := make(map[ToDoTagKey]interface{})
 
 	for rows.Next() {
 		var (
@@ -61,6 +67,7 @@ func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 		todoFromMap, todoExists := todosMap[todoId]
 		if !todoExists {
 			todosMap[todoId] = &todo
+			todoFromMap = &todo
 		}
 
 		if tagId != nil {
@@ -68,9 +75,14 @@ func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 			tagFromMap, tagExists := tagsMap[*tagId]
 			if !tagExists {
 				tagsMap[*tagId] = &tag
+				tagFromMap = &tag
 			}
 
-			todoFromMap.Tags = append(todoFromMap.Tags, tagFromMap)
+			_, todoTagExists := todoTagsMap[ToDoTagKey{TodoId: todoId, TagId: *tagId}]
+			if !todoTagExists {
+				todoTagsMap[ToDoTagKey{TodoId: todoId, TagId: *tagId}] = nil
+				todoFromMap.Tags = append(todoFromMap.Tags, tagFromMap)
+			}
 		}
 
 	}
