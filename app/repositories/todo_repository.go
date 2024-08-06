@@ -47,8 +47,8 @@ func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 		var (
 			todoId    int64
 			todoTitle string
-			tagId     int64
-			tagName   string
+			tagId     *int64
+			tagName   *string
 		)
 
 		if err := rows.Scan(&todoId, &todoTitle, &tagId, &tagName); err != nil {
@@ -56,17 +56,18 @@ func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 			return nil, err
 		}
 
-		todo := dtos.TodoDto{Id: todoId, Title: todoTitle}
+		todo := dtos.TodoDto{Id: todoId, Title: todoTitle, Tags: make([]*dtos.TagDto, 0)}
+		todos = append(todos, &todo)
 		todoFromMap, todoExists := todosMap[todoId]
 		if !todoExists {
 			todosMap[todoId] = &todo
 		}
 
-		if tagId != 0 {
-			tag := dtos.TagDto{Id: tagId, Name: tagName}
-			tagFromMap, tagExists := tagsMap[tagId]
+		if tagId != nil {
+			tag := dtos.TagDto{Id: *tagId, Name: *tagName}
+			tagFromMap, tagExists := tagsMap[*tagId]
 			if !tagExists {
-				tagsMap[tagId] = &tag
+				tagsMap[*tagId] = &tag
 			}
 
 			todoFromMap.Tags = append(todoFromMap.Tags, tagFromMap)
