@@ -1,14 +1,14 @@
 package services
 
 import (
-	"gotodo/app/models"
+	"gotodo/app/models/dtos"
 	"gotodo/app/models/requests"
 	"gotodo/app/repositories"
 )
 
 type IToDoService interface {
 	SaveToDo(request requests.NewToDoRequest) (int64, error)
-	GetAll() (*[]models.Todo, error)
+	GetAll() (*[]dtos.TodoDto, error)
 }
 
 type ToDoService struct {
@@ -30,7 +30,7 @@ func (service *ToDoService) SaveToDo(request requests.NewToDoRequest) (int64, er
 	return id, nil
 }
 
-func (service *ToDoService) GetAll() (*[]models.Todo, error) {
+func (service *ToDoService) GetAll() (*[]dtos.TodoDto, error) {
 	todos, err := service.todoRepository.GetAll()
 	if err != nil {
 		return nil, err

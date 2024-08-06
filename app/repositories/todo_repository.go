@@ -1,14 +1,14 @@
 package repositories
 
 import (
-	"gotodo/app/models"
+	"gotodo/app/models/dtos"
 	"gotodo/app/models/requests"
 	"gotodo/app/repositories/connection"
 	"log"
 )
 
 type ITodoRepository interface {
-	GetAll() (*[]models.Todo, error)
+	GetAll() (*[]dtos.TodoDto, error)
 	Save(request requests.NewToDoRequest) (int64, error)
 }
 
@@ -20,14 +20,17 @@ func NewToDoRepository(connector *connection.DbConnector) *TodoRepository {
 	return &TodoRepository{connector: connector}
 }
 
-func (repo *TodoRepository) GetAll() (*[]models.Todo, error) {
+func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 	connect, err := repo.connector.DbConnect()
 	if err != nil {
 		return nil, err
 	}
 
 	defer connect.Close()
-	rows, err := connect.Query("SELECT Id, Title FROM ToDo ORDER BY id DESC")
+
+	rows, err := connect.Query(`SELECT td.id todo_id, td.title todo_title, tg.id tag_id, tg.name tag_name FROM todo td
+    LEFT JOIN todo_tag tt ON tt.tag_id = td.id
+    LEFT JOIN tag tg ON tg.id = tt.tag_id ORDER BY td.id DESC`)
 
 	if err != nil {
 		log.Println(err)
@@ -36,19 +39,39 @@ func (repo *TodoRepository) GetAll() (*[]models.Todo, error) {
 
 	defer rows.Close()
 
-	todos := make([]models.Todo, 0)
+	todos := make([]*dtos.TodoDto, 0)
+	todosMap := make(map[int64]*dtos.TodoDto)
+	tagsMap := make(map[int64]*dtos.TagDto)
+
 	for rows.Next() {
 		var (
-			id    int64
-			title string
+			todoId    int64
+			todoTitle string
+			tagId     int64
+			tagName   string
 		)
 
-		if err := rows.Scan(&id, &title); err != nil {
+		if err := rows.Scan(&todoId, &todoTitle, &tagId, &tagName); err != nil {
 			log.Println(err)
 			return nil, err
 		}
 
-		todos = append(todos, models.Todo{Id: id, Title: title})
+		todo := dtos.TodoDto{Id: todoId, Title: todoTitle}
+		todoFromMap, todoExists := todosMap[todoId]
+		if !todoExists {
+			todosMap[todoId] = &todo
+		}
+
+		if tagId != 0 {
+			tag := dtos.TagDto{Id: tagId, Name: tagName}
+			tagFromMap, tagExists := tagsMap[tagId]
+			if !tagExists {
+				tagsMap[tagId] = &tag
+			}
+
+			todoFromMap.Tags = append(todoFromMap.Tags, tagFromMap)
+		}
+
 	}
 
 	if err := rows.Err(); err != nil {
