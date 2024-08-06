@@ -8,7 +8,7 @@ import (
 )
 
 type ITodoRepository interface {
-	GetAll() (*[]dtos.TodoDto, error)
+	GetAll() (*[]*dtos.TodoDto, error)
 	Save(request requests.NewToDoRequest) (int64, error)
 }
 
