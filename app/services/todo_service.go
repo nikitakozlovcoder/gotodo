@@ -30,7 +30,7 @@ func (service *ToDoService) SaveToDo(request requests.NewToDoRequest) (int64, er
 	return id, nil
 }
 
-func (service *ToDoService) GetAll() (*[]dtos.TodoDto, error) {
+func (service *ToDoService) GetAll() (*[]*dtos.TodoDto, error) {
 	todos, err := service.todoRepository.GetAll()
 	if err != nil {
 		return nil, err
