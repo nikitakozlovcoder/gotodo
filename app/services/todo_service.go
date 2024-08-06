@@ -8,7 +8,7 @@ import (
 
 type IToDoService interface {
 	SaveToDo(request requests.NewToDoRequest) (int64, error)
-	GetAll() (*[]dtos.TodoDto, error)
+	GetAll() (*[]*dtos.TodoDto, error)
 }
 
 type ToDoService struct {
