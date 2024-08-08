@@ -9,14 +9,17 @@ import (
 type Services struct {
 	ToDoService *ToDoService
 	JwtService  *JwtService
+	UserService *UserService
 }
 
 func BuildServices(cfg *config.Config) *Services {
 	dbConnector := connection.NewDbConnector(cfg.DatabaseConnectionString)
 	todoRepository := repositories.NewToDoRepository(dbConnector)
+	jwtService := NewJwtService(cfg.JwtKey)
 
 	return &Services{
 		ToDoService: NewToDoService(todoRepository),
-		JwtService:  NewJwtService(cfg.JwtKey),
+		JwtService:  jwtService,
+		UserService: NewUserService(jwtService),
 	}
 }

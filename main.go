@@ -4,6 +4,7 @@ import (
 	"gotodo/app/config"
 	"gotodo/app/services"
 	"gotodo/http/handlers"
+	"gotodo/http/middlewares"
 	"gotodo/http/server"
 	"log"
 )
@@ -15,8 +16,10 @@ func main() {
 	}
 
 	servicesContainer := services.BuildServices(cfg)
-	toDoHandler := todohandler.New(servicesContainer.ToDoService, servicesContainer.JwtService)
-	err = server.Start(toDoHandler, cfg.ServerPort)
+	authMiddleware := middlewares.NewAuthMiddleware(servicesContainer.JwtService)
+	toDoHandler := handlers.NewToDoHandler(servicesContainer.ToDoService, authMiddleware)
+	userHandler := handlers.NewUserHandler(servicesContainer.UserService)
+	err = server.Start(toDoHandler, userHandler, cfg.ServerPort)
 
 	if err != nil {
 		log.Fatal(err)

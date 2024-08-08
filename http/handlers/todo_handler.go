@@ -1,4 +1,4 @@
-package todohandler
+package handlers
 
 import (
 	"github.com/gin-gonic/gin"
@@ -9,25 +9,22 @@ import (
 	"net/http"
 )
 
-type IToDoHandler interface {
-	Init(ctx *gin.RouterGroup)
-}
-
 type ToDoHandler struct {
-	todoService services.IToDoService
-	jwtService  *services.JwtService
+	todoService    services.IToDoService
+	authMiddleware *middlewares.AuthMiddleware
 }
 
-func New(toDoService services.IToDoService, jwtService *services.JwtService) *ToDoHandler {
+func NewToDoHandler(toDoService services.IToDoService,
+	authMiddleware *middlewares.AuthMiddleware) *ToDoHandler {
 	return &ToDoHandler{
-		todoService: toDoService,
-		jwtService:  jwtService,
+		todoService:    toDoService,
+		authMiddleware: authMiddleware,
 	}
 }
 
 func (h *ToDoHandler) Init(router *gin.RouterGroup) {
 	router.GET("/list", h.listToDos)
-	router.POST("", middlewares.AuthMiddleware(h.jwtService), h.addToDo)
+	router.POST("", h.authMiddleware.Handle(), h.addToDo)
 }
 
 func (h *ToDoHandler) listToDos(ctx *gin.Context) {

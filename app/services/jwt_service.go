@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+type IJwtService interface {
+	CreateJwt(userId int64) (string, error)
+	ParseJwt(tokenString string) (int64, error)
+}
+
 type JwtService struct {
 	key string
 }

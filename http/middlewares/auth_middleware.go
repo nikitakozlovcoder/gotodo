@@ -8,7 +8,15 @@ import (
 	"strings"
 )
 
-func AuthMiddleware(jwtService *services.JwtService) gin.HandlerFunc {
+type AuthMiddleware struct {
+	jwtService services.IJwtService
+}
+
+func NewAuthMiddleware(jwtService services.IJwtService) *AuthMiddleware {
+	return &AuthMiddleware{jwtService: jwtService}
+}
+
+func (m *AuthMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Println("AuthMiddleware")
 		header := c.GetHeader("Authorization")
@@ -19,7 +27,7 @@ func AuthMiddleware(jwtService *services.JwtService) gin.HandlerFunc {
 		}
 
 		header = strings.TrimPrefix(header, "Bearer ")
-		userId, err := jwtService.ParseJwt(header)
+		userId, err := m.jwtService.ParseJwt(header)
 
 		log.Printf("User authenticated: %v\n", userId)
 		if err != nil {
