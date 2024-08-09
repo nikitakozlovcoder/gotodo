@@ -3,7 +3,7 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	apperrors "gotodo/app/errors"
+	apperrors "gotodo/app/apperrors"
 	"gotodo/app/models/requests"
 	"gotodo/app/services"
 	"log"

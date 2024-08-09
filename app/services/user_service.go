@@ -1,6 +1,6 @@
 package services
 
-import apperrors "gotodo/app/errors"
+import apperrors "gotodo/app/apperrors"
 
 type IUserService interface {
 	Login(userName string, password string) (string, error)
