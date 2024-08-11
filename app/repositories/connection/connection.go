@@ -34,7 +34,7 @@ func (c *DbConnection) Close() {
 
 func (c *DbConnection) getExecutor(ctx context.Context) Executor {
 	info, err := transactionctx.GetTransactionInfo(ctx)
-	if err == nil && !info.IsDone() {
+	if err == nil && info.IsActive {
 		return info.Tx
 	}
 

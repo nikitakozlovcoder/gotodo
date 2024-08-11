@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"reflect"
 )
 
 const TransactionInfoKey = "transactionInfo"
@@ -19,6 +18,7 @@ type TxContext struct {
 type Info struct {
 	IsolationLevel sql.IsolationLevel
 	Tx             *sql.Tx
+	IsActive       bool
 }
 
 func NewTxContext(ctx context.Context, transactionInfo *Info) *TxContext {
@@ -34,16 +34,13 @@ func GetTransactionInfo(ctx context.Context) (*Info, error) {
 	return info, nil
 }
 
-func (i *Info) IsDone() bool {
-	isDone := reflect.ValueOf(i.Tx).MethodByName("isDone").Call([]reflect.Value{})
-	return isDone[0].Bool()
-}
-
 func (t *TxContext) Rollback() {
 	_ = t.transactionInfo.Tx.Rollback()
+	t.transactionInfo.IsActive = false
 }
 
 func (t *TxContext) Commit() error {
+	t.transactionInfo.IsActive = false
 	if err := t.transactionInfo.Tx.Commit(); err != nil {
 		return err
 	}

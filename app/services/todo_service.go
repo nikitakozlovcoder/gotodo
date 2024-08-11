@@ -32,7 +32,7 @@ func (service *ToDoService) SaveToDo(ctx context.Context, request requests.NewTo
 	}
 
 	defer tx.Rollback()
-	id, err := service.todoRepository.Save(ctx, request)
+	id, err := service.todoRepository.Save(tx, request)
 	if err != nil {
 		return 0, err
 	}

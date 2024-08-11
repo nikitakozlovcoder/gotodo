@@ -26,7 +26,7 @@ func (tm *Manager) Begin(ctx context.Context, isolationLevel sql.IsolationLevel)
 			return nil, ErrIsolationLevelMismatch
 		}
 
-		if !tinfo.IsDone() {
+		if tinfo.IsActive {
 			return transactionctx.NewTxContext(ctx, tinfo), err
 		}
 	}
@@ -37,8 +37,11 @@ func (tm *Manager) Begin(ctx context.Context, isolationLevel sql.IsolationLevel)
 		return nil, err
 	}
 
-	tinfo = &transactionctx.Info{IsolationLevel: isolationLevel, Tx: tx}
+	tinfo = &transactionctx.Info{IsolationLevel: isolationLevel, Tx: tx, IsActive: true}
 	txctx := context.WithValue(ctx, transactionctx.TransactionInfoKey, tinfo)
+	context.AfterFunc(ctx, func() {
+		tinfo.IsActive = false
+	})
 
 	return transactionctx.NewTxContext(txctx, tinfo), nil
 }
