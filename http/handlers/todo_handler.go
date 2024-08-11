@@ -28,7 +28,7 @@ func (h *ToDoHandler) Init(router *gin.RouterGroup) {
 }
 
 func (h *ToDoHandler) listToDos(ctx *gin.Context) {
-	todos, err := h.todoService.GetAll()
+	todos, err := h.todoService.GetAll(ctx)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return
@@ -46,7 +46,7 @@ func (h *ToDoHandler) addToDo(ctx *gin.Context) {
 		return
 	}
 
-	id, err := h.todoService.SaveToDo(request)
+	id, err := h.todoService.SaveToDo(ctx, request)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return

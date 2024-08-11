@@ -1,28 +1,43 @@
 package services
 
 import (
+	"context"
 	"gotodo/app/models/dtos"
 	"gotodo/app/models/requests"
 	"gotodo/app/repositories"
+	"gotodo/app/repositories/transaction"
 )
 
 type IToDoService interface {
-	SaveToDo(request requests.NewToDoRequest) (int64, error)
-	GetAll() (*[]*dtos.TodoDto, error)
+	SaveToDo(ctx context.Context, request requests.NewToDoRequest) (int64, error)
+	GetAll(ctx context.Context) (*[]*dtos.TodoDto, error)
 }
 
 type ToDoService struct {
-	todoRepository repositories.ITodoRepository
+	todoRepository     repositories.ITodoRepository
+	transactionManager *transaction.Manager
 }
 
-func NewToDoService(repository repositories.ITodoRepository) *ToDoService {
+func NewToDoService(repository repositories.ITodoRepository, transactionManager *transaction.Manager) *ToDoService {
 	return &ToDoService{
-		todoRepository: repository,
+		todoRepository:     repository,
+		transactionManager: transactionManager,
 	}
 }
 
-func (service *ToDoService) SaveToDo(request requests.NewToDoRequest) (int64, error) {
-	id, err := service.todoRepository.Save(request)
+func (service *ToDoService) SaveToDo(ctx context.Context, request requests.NewToDoRequest) (int64, error) {
+	tx, err := service.transactionManager.BeginReadCommited(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	defer tx.Rollback()
+	id, err := service.todoRepository.Save(ctx, request)
+	if err != nil {
+		return 0, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return 0, err
 	}
@@ -30,8 +45,8 @@ func (service *ToDoService) SaveToDo(request requests.NewToDoRequest) (int64, er
 	return id, nil
 }
 
-func (service *ToDoService) GetAll() (*[]*dtos.TodoDto, error) {
-	todos, err := service.todoRepository.GetAll()
+func (service *ToDoService) GetAll(ctx context.Context) (*[]*dtos.TodoDto, error) {
+	todos, err := service.todoRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

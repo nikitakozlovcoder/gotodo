@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"gotodo/app/models/dtos"
 	"gotodo/app/models/requests"
 	"gotodo/app/repositories/connection"
@@ -8,32 +9,25 @@ import (
 )
 
 type ITodoRepository interface {
-	GetAll() (*[]*dtos.TodoDto, error)
-	Save(request requests.NewToDoRequest) (int64, error)
+	GetAll(ctx context.Context) (*[]*dtos.TodoDto, error)
+	Save(ctx context.Context, request requests.NewToDoRequest) (int64, error)
 }
 
 type TodoRepository struct {
-	connector *connection.DbConnector
+	connection *connection.DbConnection
 }
 
-func NewToDoRepository(connector *connection.DbConnector) *TodoRepository {
-	return &TodoRepository{connector: connector}
+func NewToDoRepository(connection *connection.DbConnection) *TodoRepository {
+	return &TodoRepository{connection: connection}
 }
 
-func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
+func (repo *TodoRepository) GetAll(ctx context.Context) (*[]*dtos.TodoDto, error) {
 	type ToDoTagKey struct {
 		TodoId int64
 		TagId  int64
 	}
 
-	connect, err := repo.connector.DbConnect()
-	if err != nil {
-		return nil, err
-	}
-
-	defer connect.Close()
-
-	rows, err := connect.Query(`SELECT td.id todo_id, td.title todo_title, tg.id tag_id, tg.name tag_name FROM todo td
+	rows, err := repo.connection.QueryContext(ctx, `SELECT td.id todo_id, td.title todo_title, tg.id tag_id, tg.name tag_name FROM todo td
     LEFT JOIN todo_tag tt ON tt.tag_id = td.id
     LEFT JOIN tag tg ON tg.id = tt.tag_id ORDER BY td.id DESC`)
 
@@ -95,24 +89,17 @@ func (repo *TodoRepository) GetAll() (*[]*dtos.TodoDto, error) {
 	return &todos, nil
 }
 
-func (repo *TodoRepository) Save(request requests.NewToDoRequest) (int64, error) {
-	connect, err := repo.connector.DbConnect()
-	if err != nil {
-		log.Println(err)
-		return 0, err
-	}
-
-	defer connect.Close()
-	query := connect.QueryRow("INSERT INTO ToDo (title, body)"+
+func (repo *TodoRepository) Save(ctx context.Context, request requests.NewToDoRequest) (int64, error) {
+	query := repo.connection.QueryRowContext(ctx, "INSERT INTO ToDo (title, body)"+
 		"VALUES ($1, $2) RETURNING id", request.Title, request.Body)
 
-	if query.Err() != nil {
+	if err := query.Err(); err != nil {
 		log.Println(err)
 		return 0, err
 	}
 
 	var id int64
-	if err = query.Scan(&id); err != nil {
+	if err := query.Scan(&id); err != nil {
 		log.Println(err)
 		return 0, err
 	}

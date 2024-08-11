@@ -4,6 +4,7 @@ import (
 	"gotodo/app/config"
 	"gotodo/app/repositories"
 	"gotodo/app/repositories/connection"
+	"gotodo/app/repositories/transaction"
 )
 
 type Services struct {
@@ -12,13 +13,13 @@ type Services struct {
 	UserService *UserService
 }
 
-func BuildServices(cfg *config.Config) *Services {
-	dbConnector := connection.NewDbConnector(cfg.DatabaseConnectionString)
-	todoRepository := repositories.NewToDoRepository(dbConnector)
+func BuildServices(cfg *config.Config, connection *connection.DbConnection) *Services {
+	transactionManager := transaction.NewManager(connection)
+	todoRepository := repositories.NewToDoRepository(connection)
 	jwtService := NewJwtService(cfg.JwtKey)
 
 	return &Services{
-		ToDoService: NewToDoService(todoRepository),
+		ToDoService: NewToDoService(todoRepository, transactionManager),
 		JwtService:  jwtService,
 		UserService: NewUserService(jwtService),
 	}
