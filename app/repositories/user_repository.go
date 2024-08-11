@@ -7,7 +7,11 @@ type IUserRepository interface {
 }
 
 type UserRepository struct {
-	connection *connection.DbConnection
+	connection connection.Executor
+}
+
+func NewUserRepository(connection connection.Executor) *UserRepository {
+	return &UserRepository{connection: connection}
 }
 
 func (repo *UserRepository) GetUserPasswordHashByUserName(userName string, password string) (string, error) {

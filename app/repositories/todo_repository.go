@@ -14,10 +14,10 @@ type ITodoRepository interface {
 }
 
 type TodoRepository struct {
-	connection *connection.DbConnection
+	connection connection.Executor
 }
 
-func NewToDoRepository(connection *connection.DbConnection) *TodoRepository {
+func NewToDoRepository(connection connection.Executor) *TodoRepository {
 	return &TodoRepository{connection: connection}
 }
 
