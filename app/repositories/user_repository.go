@@ -1,9 +1,15 @@
 package repositories
 
-import "gotodo/app/repositories/connection"
+import (
+	"context"
+	"gotodo/app/repositories/connection"
+)
 
 type IUserRepository interface {
-	GetUserPasswordHashByUserName(userName string, password string) (string, error)
+	GetUserByLogin(ctx context.Context, login string) (*struct {
+		Id           int64
+		PasswordHash string
+	}, error)
 }
 
 type UserRepository struct {
@@ -14,6 +20,24 @@ func NewUserRepository(connection connection.Executor) *UserRepository {
 	return &UserRepository{connection: connection}
 }
 
-func (repo *UserRepository) GetUserPasswordHashByUserName(userName string, password string) (string, error) {
-	return "", nil
+func (repo *UserRepository) GetUserByLogin(ctx context.Context, login string) (*struct {
+	Id           int64
+	PasswordHash string
+}, error) {
+	row := repo.connection.QueryRowContext(ctx, "SELECT id, password_hash FROM User WHERE login = %1", login)
+	if err := row.Err(); err != nil {
+		return nil, err
+	}
+
+	user := struct {
+		Id           int64
+		PasswordHash string
+	}{}
+
+	err := row.Scan(&user.PasswordHash, &user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

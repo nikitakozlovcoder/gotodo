@@ -33,7 +33,7 @@ func (h *UserHandler) login(ctx *gin.Context) {
 		return
 	}
 
-	jwt, err := h.userService.Login(request.UserName, request.Password)
+	jwt, err := h.userService.Login(ctx, request.Login, request.Password)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, apperrors.InvalidUserCredentials) {

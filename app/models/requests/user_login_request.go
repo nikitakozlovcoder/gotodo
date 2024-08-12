@@ -1,6 +1,6 @@
 package requests
 
 type UserLoginRequest struct {
-	UserName string
+	Login    string
 	Password string
 }
