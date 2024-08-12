@@ -1,5 +1,10 @@
 package services
 
+import (
+	"crypto/sha256"
+	"encoding/base64"
+)
+
 type IHashService interface {
 	Hash(key string) string
 }
@@ -11,5 +16,6 @@ func NewHashService() *HashSha256Service {
 }
 
 func (HashSha256Service) Hash(key string) string {
-	return ""
+	sha := sha256.Sum256([]byte(key))
+	return base64.URLEncoding.EncodeToString(sha[:])
 }

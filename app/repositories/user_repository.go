@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"gotodo/app/repositories/connection"
 )
 
@@ -24,7 +26,7 @@ func (repo *UserRepository) GetUserByLogin(ctx context.Context, login string) (*
 	Id           int64
 	PasswordHash string
 }, error) {
-	row := repo.connection.QueryRowContext(ctx, "SELECT id, password_hash FROM User WHERE login = %1", login)
+	row := repo.connection.QueryRowContext(ctx, "SELECT id, password_hash FROM Users WHERE login = $1", login)
 	if err := row.Err(); err != nil {
 		return nil, err
 	}
@@ -34,8 +36,12 @@ func (repo *UserRepository) GetUserByLogin(ctx context.Context, login string) (*
 		PasswordHash string
 	}{}
 
-	err := row.Scan(&user.PasswordHash, &user.Id)
+	err := row.Scan(&user.Id, &user.PasswordHash)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

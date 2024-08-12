@@ -28,6 +28,10 @@ func (userService *UserService) Login(ctx context.Context, login string, passwor
 		return "", err
 	}
 
+	if user == nil {
+		return "", apperrors.InvalidUserCredentials
+	}
+
 	providedPasswordHash := userService.hashService.Hash(password)
 	if providedPasswordHash != user.PasswordHash {
 		return "", apperrors.InvalidUserCredentials
