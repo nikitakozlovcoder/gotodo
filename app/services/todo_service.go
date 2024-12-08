@@ -11,11 +11,17 @@ import (
 type IToDoService interface {
 	SaveToDo(ctx context.Context, request requests.NewToDoRequest) (int64, error)
 	GetAll(ctx context.Context) (*[]*dtos.TodoDto, error)
+	DeleteToDo(ctx context.Context, id int64) error
 }
 
 type ToDoService struct {
 	todoRepository     repositories.ITodoRepository
 	transactionManager *transaction.Manager
+}
+
+
+func (service *ToDoService) DeleteToDo(ctx context.Context, id int64) error {
+	return service.todoRepository.DeleteById(ctx, id)
 }
 
 func NewToDoService(repository repositories.ITodoRepository, transactionManager *transaction.Manager) *ToDoService {

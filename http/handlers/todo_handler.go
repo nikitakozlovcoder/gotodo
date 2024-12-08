@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"gotodo/app/models/requests"
 	"gotodo/app/services"
 	"gotodo/http/middlewares"
 	"log"
 	"net/http"
+	"strconv"
+	"github.com/gin-gonic/gin"
 )
 
 type ToDoHandler struct {
@@ -25,13 +26,14 @@ func NewToDoHandler(toDoService services.IToDoService,
 func (h *ToDoHandler) Init(router *gin.RouterGroup) {
 	router.GET("/list", h.listToDos)
 	router.POST("", h.authMiddleware.Handle(), h.addToDo)
+	router.DELETE("/:id", h.deleteToDo)
 }
 
 func (h *ToDoHandler) listToDos(ctx *gin.Context) {
 	todos, err := h.todoService.GetAll(ctx)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return
+		return 
 	}
 
 	ctx.JSON(200, todos)
@@ -53,4 +55,22 @@ func (h *ToDoHandler) addToDo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{"id": id})
+}
+
+func (h *ToDoHandler) deleteToDo(ctx *gin.Context) {
+	var id, err = strconv.ParseInt(ctx.Param("id"), 10, 64) 
+	if err != nil {
+		log.Print(err)
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
+	
+	err = h.todoService.DeleteToDo(ctx, id)
+	if err != nil {
+		log.Print(err)
+		ctx.Status(http.StatusInternalServerError)
+		return
+	}
+
+	ctx.Status(200)
 }

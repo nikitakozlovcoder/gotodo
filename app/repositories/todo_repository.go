@@ -11,6 +11,7 @@ import (
 type ITodoRepository interface {
 	GetAll(ctx context.Context) (*[]*dtos.TodoDto, error)
 	Save(ctx context.Context, request requests.NewToDoRequest) (int64, error)
+	DeleteById(ctx context.Context, id int64) error
 }
 
 type TodoRepository struct {
@@ -87,6 +88,17 @@ func (repo *TodoRepository) GetAll(ctx context.Context) (*[]*dtos.TodoDto, error
 	}
 
 	return &todos, nil
+}
+
+func (repo *TodoRepository) DeleteById(ctx context.Context, id int64) error {
+	_, err := repo.connection.ExecContext(ctx, "DELETE FROM ToDo WHERE ID = $1", id)
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 func (repo *TodoRepository) Save(ctx context.Context, request requests.NewToDoRequest) (int64, error) {
